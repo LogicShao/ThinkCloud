@@ -1,27 +1,225 @@
 package com.thinkcloud.llmclient.data.remote.provider
 
+import android.util.Log
+import com.google.gson.Gson
+import com.thinkcloud.llmclient.data.remote.api.DeepSeekChatRequest
+import com.thinkcloud.llmclient.data.remote.api.DeepSeekChatResponse
+import com.thinkcloud.llmclient.data.remote.api.DeepSeekErrorResponse
+import com.thinkcloud.llmclient.data.remote.api.DeepSeekMessage
+import com.thinkcloud.llmclient.data.remote.api.KimiApiService
 import com.thinkcloud.llmclient.data.remote.config.ApiConfig
 import com.thinkcloud.llmclient.domain.model.LlmProviderType
 import com.thinkcloud.llmclient.domain.model.LlmRequest
 import com.thinkcloud.llmclient.domain.model.LlmResponse
+import com.thinkcloud.llmclient.domain.model.MessageRole
+import com.thinkcloud.llmclient.domain.model.UsageInfo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 /**
- * Kimi (月之暗面) 供应商实现
+ * Kimi（月之暗面）供应商实现
  */
 class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
 
+    companion object {
+        private const val TAG = "KimiProvider"
+    }
+
     override val providerType: LlmProviderType = LlmProviderType.KIMI
 
-    override suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse> {
-        // 简化实现，返回非流式响应
-        return flowOf(
-            LlmResponse.Success(
-                content = "这是来自 Kimi 的响应",
-                model = request.model
+    private val gson = Gson()
+
+    private val apiService: KimiApiService by lazy {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        Retrofit.Builder()
+            .baseUrl(apiConfig.kimiBaseUrl)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(KimiApiService::class.java)
+    }
+
+    override suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse> = flow {
+        try {
+            val apiRequest = DeepSeekChatRequest(
+                model = request.model,
+                messages = request.messages.map { msg ->
+                    DeepSeekMessage(
+                        role = when (msg.role) {
+                            MessageRole.USER -> "user"
+                            MessageRole.ASSISTANT -> "assistant"
+                            MessageRole.SYSTEM -> "system"
+                        },
+                        content = msg.content
+                    )
+                },
+                stream = request.stream,
+                maxTokens = request.maxTokens,
+                temperature = request.temperature,
+                topP = request.topP
             )
-        )
+
+            val authorization = "Bearer ${apiConfig.kimiApiKey}"
+
+            if (request.stream) {
+                handleStreamResponse(authorization, apiRequest, this)
+            } else {
+                handleNonStreamResponse(authorization, apiRequest, this)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "发送消息失败", e)
+            emit(
+                LlmResponse.Error(
+                    message = "发送消息失败: ${e.message}",
+                    retryable = true
+                )
+            )
+        }
+    }
+
+    private suspend fun handleNonStreamResponse(
+        authorization: String,
+        request: DeepSeekChatRequest,
+        collector: kotlinx.coroutines.flow.FlowCollector<LlmResponse>
+    ) {
+        val response = withContext(Dispatchers.IO) {
+            apiService.chat(authorization, request)
+        }
+
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body != null && body.choices.isNotEmpty()) {
+                val content = body.choices.first().message?.content ?: ""
+                val usage = body.usage?.let {
+                    UsageInfo(
+                        promptTokens = it.promptTokens,
+                        completionTokens = it.completionTokens,
+                        totalTokens = it.totalTokens
+                    )
+                }
+                collector.emit(
+                    LlmResponse.Success(
+                        content = content,
+                        model = body.model,
+                        usage = usage
+                    )
+                )
+            } else {
+                collector.emit(
+                    LlmResponse.Error(
+                        message = "响应为空",
+                        retryable = true
+                    )
+                )
+            }
+        } else {
+            val errorBody = response.errorBody()?.string()
+            val errorMessage = try {
+                val error = gson.fromJson(errorBody, DeepSeekErrorResponse::class.java)
+                error.error.message
+            } catch (e: Exception) {
+                "HTTP ${response.code()}: ${response.message()}"
+            }
+            collector.emit(
+                LlmResponse.Error(
+                    message = errorMessage,
+                    code = response.code().toString(),
+                    retryable = response.code() in 500..599
+                )
+            )
+        }
+    }
+
+    private suspend fun handleStreamResponse(
+        authorization: String,
+        request: DeepSeekChatRequest,
+        collector: kotlinx.coroutines.flow.FlowCollector<LlmResponse>
+    ) {
+        val response = withContext(Dispatchers.IO) {
+            apiService.chatStream(authorization, request)
+        }
+
+        if (response.isSuccessful) {
+            val responseBody = response.body()
+            if (responseBody != null) {
+                val source = responseBody.source()
+                val contentBuilder = StringBuilder()
+
+                while (!source.exhausted()) {
+                    val line = source.readUtf8Line() ?: continue
+
+                    if (line.startsWith("data: ")) {
+                        val data = line.substring(6).trim()
+
+                        if (data == "[DONE]") {
+                            collector.emit(
+                                LlmResponse.Streaming(
+                                    content = contentBuilder.toString(),
+                                    isComplete = true
+                                )
+                            )
+                            break
+                        }
+
+                        try {
+                            val chunk = gson.fromJson(data, DeepSeekChatResponse::class.java)
+                            val delta = chunk.choices.firstOrNull()?.delta?.content
+
+                            if (delta != null) {
+                                contentBuilder.append(delta)
+                                collector.emit(
+                                    LlmResponse.Streaming(
+                                        content = contentBuilder.toString(),
+                                        isComplete = false
+                                    )
+                                )
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "解析流式数据失败: $data", e)
+                        }
+                    }
+                }
+            } else {
+                collector.emit(
+                    LlmResponse.Error(
+                        message = "响应体为空",
+                        retryable = true
+                    )
+                )
+            }
+        } else {
+            val errorBody = response.errorBody()?.string()
+            val errorMessage = try {
+                val error = gson.fromJson(errorBody, DeepSeekErrorResponse::class.java)
+                error.error.message
+            } catch (e: Exception) {
+                "HTTP ${response.code()}: ${response.message()}"
+            }
+            collector.emit(
+                LlmResponse.Error(
+                    message = errorMessage,
+                    code = response.code().toString(),
+                    retryable = response.code() in 500..599
+                )
+            )
+        }
     }
 
     override suspend fun getSupportedModels(): List<String> {

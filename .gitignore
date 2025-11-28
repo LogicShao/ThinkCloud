@@ -1,15 +1,208 @@
+# ============================================
+# Android 项目 .gitignore
+# ============================================
+
+# ================== Gradle ==================
+.gradle/
+**/build/
+!gradle-wrapper.jar
+gradle-app.setting
+.gradletasknamecache
+
+# ================== Android Studio / IntelliJ IDEA ==================
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.idea/
+*.ipr
+*.iws
+out/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# ================== Android 构建输出 ==================
+# APK 文件
+*.apk
+*.aab
+*.ap_
+*.apk.res
+
+# DEX 文件
+*.dex
+
+# Java 编译输出
+*.class
+bin/
+gen/
+
+# Proguard
+proguard/
+proguard-rules-debug.txt
+proguard-rules-release.txt
+
+# Log 文件
+*.log
+
+# ================== 本地配置文件 ==================
 local.properties
+gradle.properties.local
+keystore.properties
+
+# ================== 密钥和证书（重要！）==================
+# Keystore 文件 - 绝不应提交到仓库
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+release.jks
+debug.jks
+app-release.jks
+app-debug.jks
+
+# ================== Google Services ==================
+# 根据需要决定是否忽略
+# google-services.json
+# google-services-debug.json
+# google-services-release.json
+
+# ================== NDK / CMake ==================
+obj/
+.externalNativeBuild/
+.cxx/
+cmake-build-*/
+
+# ================== macOS ==================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ================== Windows ==================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ================== Linux ==================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ================== IDE 和编辑器 ==================
+# Android Studio
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.classpath
+.project
+.settings/
+*.launch
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ================== 版本控制系统 ==================
+.svn/
+.hg/
+CVS/
+
+# ================== 临时文件和缓存 ==================
+*.tmp
+*.temp
+*.bak
+*.cache
+tmp/
+.cache/
+
+# ================== AI 辅助开发工具 ==================
+# Claude Code
+.claude/
+
+# GitHub Copilot
+.github/copilot/
+
+# Cursor IDE
+.cursor/
+
+# ================== 测试覆盖率报告 ==================
+*.exec
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+junit/
+test-results/
+
+# ================== 其他 ==================
+# 本地数据库文件
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# 备份文件
+*.backup
+*.old
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+
+# ================== 项目特定 ==================
+# 如果有其他需要忽略的文件，在此添加
+
+# 构建输出目录
+build/
+app/build/
+*/build/
+
+# 本地测试文件
+/test-output/
+
+# R.java 文件（由构建系统生成）
+# app/src/main/gen/
+
+# ================== 保留文件示例 ==================
+# 如果某些通常被忽略的文件需要保留，使用 ! 前缀
+# !important-file.apk
+# !gradle-wrapper.jar
+
+# ================== 敏感信息提醒 ==================
+# 【重要】以下文件可能包含敏感信息，请谨慎处理：
+# - API 密钥配置文件
+# - 签名证书文件
+# - 服务账号 JSON 文件
+# - 自定义的密钥配置文件
+#
+# 建议使用环境变量或 CI/CD 系统的密钥管理功能
