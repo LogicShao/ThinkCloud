@@ -11,28 +11,28 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ChatRepository {
 
-    /**
-     * 发送消息到 LLM
-     */
-    suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse>
+  /**
+   * 发送消息到 LLM
+   */
+  suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse>
 
-    /**
-     * 获取支持的模型列表
-     */
-    suspend fun getSupportedModels(provider: LlmProviderType): List<String>
+  /**
+   * 获取支持的模型列表
+   */
+  suspend fun getSupportedModels(provider: LlmProviderType): List<String>
 
-    /**
-     * 验证 API 密钥
-     */
-    suspend fun validateApiKey(provider: LlmProviderType, apiKey: String): Boolean
+  /**
+   * 验证 API 密钥
+   */
+  suspend fun validateApiKey(provider: LlmProviderType, apiKey: String): Boolean
 
-    /**
-     * 获取当前活跃的供应商
-     */
-    fun getCurrentProvider(): LlmProviderType
+  /**
+   * 获取当前活跃的供应商
+   */
+  fun getCurrentProvider(): LlmProviderType
 
-    /**
-     * 设置当前活跃的供应商
-     */
-    fun setCurrentProvider(provider: LlmProviderType)
+  /**
+   * 设置当前活跃的供应商
+   */
+  fun setCurrentProvider(provider: LlmProviderType)
 }

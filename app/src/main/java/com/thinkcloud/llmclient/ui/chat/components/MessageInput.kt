@@ -26,77 +26,77 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MessageInput(
-    text: String,
-    onTextChanged: (String) -> Unit,
-    onSendClicked: () -> Unit,
-    isLoading: Boolean = false,
-    modifier: Modifier = Modifier
+  text: String,
+  onTextChanged: (String) -> Unit,
+  onSendClicked: () -> Unit,
+  isLoading: Boolean = false,
+  modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+  Card(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(16.dp),
+    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+  ) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 输入框
+      // 输入框
+      Box(
+        modifier = Modifier
+          .weight(1f)
+          .padding(vertical = 8.dp)
+      ) {
+        BasicTextField(
+          value = text,
+          onValueChange = onTextChanged,
+          textStyle = TextStyle(
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = MaterialTheme.typography.bodyMedium.fontSize
+          ),
+          cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+          decorationBox = { innerTextField ->
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 8.dp)
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
             ) {
-                BasicTextField(
-                    value = text,
-                    onValueChange = onTextChanged,
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        ) {
-                            if (text.isEmpty()) {
-                                Text(
-                                    text = "输入消息...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            innerTextField()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
+              if (text.isEmpty()) {
+                Text(
+                  text = "输入消息...",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+              }
+              innerTextField()
             }
+          },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
 
-            // 发送按钮
-            IconButton(
-                onClick = onSendClicked,
-                enabled = text.isNotBlank() && !isLoading,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "发送消息",
-                    tint = if (text.isNotBlank() && !isLoading) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
-            }
-        }
+      // 发送按钮
+      IconButton(
+        onClick = onSendClicked,
+        enabled = text.isNotBlank() && !isLoading,
+        modifier = Modifier
+          .size(48.dp)
+          .clip(CircleShape)
+      ) {
+        Icon(
+          imageVector = Icons.Default.Send,
+          contentDescription = "发送消息",
+          tint = if (text.isNotBlank() && !isLoading) {
+            MaterialTheme.colorScheme.primary
+          } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+          }
+        )
+      }
     }
+  }
 }

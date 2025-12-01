@@ -30,111 +30,120 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import com.thinkcloud.llmclient.ui.config.components.ApiKeyInput
 import com.thinkcloud.llmclient.ui.config.components.SaveButton
+import com.thinkcloud.llmclient.ui.config.components.ThemeSelector
 import com.thinkcloud.llmclient.ui.config.state.ConfigEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
-    onBackClick: () -> Unit,
-    viewModel: ConfigViewModel = koinViewModel()
+  onBackClick: () -> Unit,
+  viewModel: ConfigViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  val snackbarHostState = remember { SnackbarHostState() }
 
-    // 显示错误消息
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let { error ->
-            snackbarHostState.showSnackbar(error)
-            viewModel.onEvent(ConfigEvent.ClearError)
-        }
+  // 显示错误消息
+  LaunchedEffect(state.errorMessage) {
+    state.errorMessage?.let { error ->
+      snackbarHostState.showSnackbar(error)
+      viewModel.onEvent(ConfigEvent.ClearError)
     }
+  }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "API 密钥配置",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "返回"
-                        )
-                    }
-                }
-            )
+  Scaffold(
+    topBar = {
+      CenterAlignedTopAppBar(
+        title = {
+          Text(
+            text = "API 密钥配置",
+            style = MaterialTheme.typography.titleLarge
+          )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        if (state.isLoading) {
-            // 加载状态
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // 说明文本
-                Text(
-                    text = "请配置您要使用的 AI 供应商 API 密钥。配置完成后，您可以在聊天界面切换不同的供应商。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-                // DeepSeek 配置
-                ApiKeyInput(
-                    providerName = "DeepSeek",
-                    apiKey = state.deepSeekApiKey,
-                    onApiKeyChanged = { apiKey ->
-                        viewModel.onEvent(ConfigEvent.DeepSeekApiKeyChanged(apiKey))
-                    },
-                    isAvailable = state.providerStatus.get("DeepSeek")
-                )
-
-                // 阿里云通义千问配置
-                ApiKeyInput(
-                    providerName = "通义千问",
-                    apiKey = state.alibabaApiKey,
-                    onApiKeyChanged = { apiKey ->
-                        viewModel.onEvent(ConfigEvent.AlibabaApiKeyChanged(apiKey))
-                    },
-                    isAvailable = state.providerStatus.get("通义千问")
-                )
-
-                // Kimi 配置
-                ApiKeyInput(
-                    providerName = "Kimi",
-                    apiKey = state.kimiApiKey,
-                    onApiKeyChanged = { apiKey ->
-                        viewModel.onEvent(ConfigEvent.KimiApiKeyChanged(apiKey))
-                    },
-                    isAvailable = state.providerStatus.get("Kimi")
-                )
-
-                // 保存按钮
-                SaveButton(
-                    isSaving = state.isSaving,
-                    isSuccess = state.saveSuccess,
-                    onClick = {
-                        viewModel.onEvent(ConfigEvent.SaveApiKeys)
-                    }
-                )
-            }
+        navigationIcon = {
+          IconButton(onClick = onBackClick) {
+            Icon(
+              imageVector = Icons.Default.ArrowBack,
+              contentDescription = "返回"
+            )
+          }
         }
+      )
+    },
+    snackbarHost = { SnackbarHost(snackbarHostState) }
+  ) { paddingValues ->
+    if (state.isLoading) {
+      // 加载状态
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(paddingValues),
+        contentAlignment = Alignment.Center
+      ) {
+        CircularProgressIndicator()
+      }
+    } else {
+      Column(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(paddingValues)
+          .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        // 说明文本
+        Text(
+          text = "请配置您要使用的 AI 供应商 API 密钥。配置完成后，您可以在聊天界面切换不同的供应商。",
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        // 主题选择器
+        ThemeSelector(
+          currentTheme = state.themeMode,
+          onThemeChanged = { themeMode ->
+            viewModel.onEvent(ConfigEvent.ThemeModeChanged(themeMode))
+          }
+        )
+
+        // DeepSeek 配置
+        ApiKeyInput(
+          providerName = "DeepSeek",
+          apiKey = state.deepSeekApiKey,
+          onApiKeyChanged = { apiKey ->
+            viewModel.onEvent(ConfigEvent.DeepSeekApiKeyChanged(apiKey))
+          },
+          isAvailable = state.providerStatus.get("DeepSeek")
+        )
+
+        // 阿里云通义千问配置
+        ApiKeyInput(
+          providerName = "通义千问",
+          apiKey = state.alibabaApiKey,
+          onApiKeyChanged = { apiKey ->
+            viewModel.onEvent(ConfigEvent.AlibabaApiKeyChanged(apiKey))
+          },
+          isAvailable = state.providerStatus.get("通义千问")
+        )
+
+        // Kimi 配置
+        ApiKeyInput(
+          providerName = "Kimi",
+          apiKey = state.kimiApiKey,
+          onApiKeyChanged = { apiKey ->
+            viewModel.onEvent(ConfigEvent.KimiApiKeyChanged(apiKey))
+          },
+          isAvailable = state.providerStatus.get("Kimi")
+        )
+
+        // 保存按钮
+        SaveButton(
+          isSaving = state.isSaving,
+          isSuccess = state.saveSuccess,
+          onClick = {
+            viewModel.onEvent(ConfigEvent.SaveApiKeys)
+          }
+        )
+      }
     }
+  }
 }

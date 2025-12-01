@@ -12,41 +12,41 @@ import kotlinx.coroutines.flow.flowOf
  */
 class AlibabaProvider(private val apiConfig: ApiConfig) : LlmProvider {
 
-    override val providerType: LlmProviderType = LlmProviderType.ALIBABA
+  override val providerType: LlmProviderType = LlmProviderType.ALIBABA
 
-    override suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse> {
-        // 简化实现，返回非流式响应
-        return flowOf(
-            LlmResponse.Success(
-                content = "这是来自通义千问的响应",
-                model = request.model
-            )
-        )
-    }
+  override suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse> {
+    // 简化实现，返回非流式响应
+    return flowOf(
+      LlmResponse.Success(
+        content = "这是来自通义千问的响应",
+        model = request.model
+      )
+    )
+  }
 
-    override suspend fun getSupportedModels(): List<String> {
-        return listOf(
-            "qwen-turbo",
-            "qwen-plus",
-            "qwen-max",
-            "qwen-long",
-            "qwen-vl-plus"
-        )
-    }
+  override suspend fun getSupportedModels(): List<String> {
+    return listOf(
+      "qwen-turbo",
+      "qwen-plus",
+      "qwen-max",
+      "qwen-long",
+      "qwen-vl-plus"
+    )
+  }
 
-    override suspend fun validateApiKey(apiKey: String): Boolean {
-        return apiKey.isNotBlank()
-    }
+  override suspend fun validateApiKey(apiKey: String): Boolean {
+    return apiKey.isNotBlank()
+  }
 
-    override fun isAvailable(): Boolean {
-        return apiConfig.alibabaApiKey.isNotBlank()
-    }
+  override fun isAvailable(): Boolean {
+    return apiConfig.alibabaApiKey.isNotBlank()
+  }
 
-    override fun getDisplayName(): String {
-        return "通义千问"
-    }
+  override fun getDisplayName(): String {
+    return "通义千问"
+  }
 
-    override fun getDefaultModel(): String {
-        return "qwen-turbo"
-    }
+  override fun getDefaultModel(): String {
+    return "qwen-turbo"
+  }
 }

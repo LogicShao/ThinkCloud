@@ -12,22 +12,22 @@ import retrofit2.http.Streaming
  */
 interface DeepSeekApiService {
 
-    /**
-     * 发送聊天请求（非流式）
-     */
-    @POST("v1/chat/completions")
-    suspend fun chat(
-        @Header("Authorization") authorization: String,
-        @Body request: DeepSeekChatRequest
-    ): Response<DeepSeekChatResponse>
+  /**
+   * 发送聊天请求（非流式）
+   */
+  @POST("v1/chat/completions")
+  suspend fun chat(
+    @Header("Authorization") authorization: String,
+    @Body request: DeepSeekChatRequest
+  ): Response<DeepSeekChatResponse>
 
-    /**
-     * 发送聊天请求（流式）
-     */
-    @Streaming
-    @POST("v1/chat/completions")
-    suspend fun chatStream(
-        @Header("Authorization") authorization: String,
-        @Body request: DeepSeekChatRequest
-    ): Response<ResponseBody>
+  /**
+   * 发送聊天请求（流式）
+   */
+  @Streaming
+  @POST("v1/chat/completions")
+  suspend fun chatStream(
+    @Header("Authorization") authorization: String,
+    @Body request: DeepSeekChatRequest
+  ): Response<ResponseBody>
 }

@@ -10,13 +10,13 @@ import org.koin.core.context.startKoin
  */
 class LlmClientApp : Application() {
 
-    override fun onCreate() {
-        super.onCreate()
+  override fun onCreate() {
+    super.onCreate()
 
-        // 初始化 Koin 依赖注入
-        startKoin {
-            androidContext(this@LlmClientApp)
-            modules(appModule)
-        }
+    // 初始化 Koin 依赖注入
+    startKoin {
+      androidContext(this@LlmClientApp)
+      modules(appModule)
     }
+  }
 }

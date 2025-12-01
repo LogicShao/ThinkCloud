@@ -25,80 +25,80 @@ import com.thinkcloud.llmclient.domain.model.MessageRole
 
 @Composable
 fun MessageBubble(
-    message: ChatMessage,
-    modifier: Modifier = Modifier
+  message: ChatMessage,
+  modifier: Modifier = Modifier
 ) {
-    val isUser = message.role == MessageRole.USER
-    val backgroundColor = if (isUser) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
-    val textColor = if (isUser) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
+  val isUser = message.role == MessageRole.USER
+  val backgroundColor = if (isUser) {
+    MaterialTheme.colorScheme.primary
+  } else {
+    MaterialTheme.colorScheme.surfaceVariant
+  }
+  val textColor = if (isUser) {
+    MaterialTheme.colorScheme.onPrimary
+  } else {
+    MaterialTheme.colorScheme.onSurfaceVariant
+  }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+  Row(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp, vertical = 8.dp),
+    horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+  ) {
+    Box(
+      modifier = Modifier
+        .clip(RoundedCornerShape(16.dp))
+        .background(backgroundColor)
+        .padding(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(backgroundColor)
-                .padding(16.dp)
-        ) {
-            Column {
-                // 消息角色标签
-                Text(
-                    text = if (isUser) "你" else "AI",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Bold
-                )
+      Column {
+        // 消息角色标签
+        Text(
+          text = if (isUser) "你" else "AI",
+          style = MaterialTheme.typography.labelSmall,
+          color = textColor.copy(alpha = 0.7f),
+          fontWeight = FontWeight.Bold
+        )
 
-                // 消息内容
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = textColor,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+        // 消息内容
+        Text(
+          text = message.content,
+          style = MaterialTheme.typography.bodyMedium,
+          color = textColor,
+          modifier = Modifier.padding(top = 4.dp)
+        )
 
-                // 错误消息显示
-                if (message.isError) {
-                    Row(
-                        modifier = Modifier.padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "错误",
-                            tint = Color.Red,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                        Text(
-                            text = message.errorMessage ?: "未知错误",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Red
-                        )
-                    }
-                }
-
-                // 模型信息（如果是 AI 消息）
-                if (!isUser && message.model != null) {
-                    Text(
-                        text = "模型: ${message.model}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = textColor.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
+        // 错误消息显示
+        if (message.isError) {
+          Row(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Icon(
+              imageVector = Icons.Default.Warning,
+              contentDescription = "错误",
+              tint = Color.Red,
+              modifier = Modifier.padding(end = 4.dp)
+            )
+            Text(
+              text = message.errorMessage ?: "未知错误",
+              style = MaterialTheme.typography.labelSmall,
+              color = Color.Red
+            )
+          }
         }
+
+        // 模型信息（如果是 AI 消息）
+        if (!isUser && message.model != null) {
+          Text(
+            text = "模型: ${message.model}",
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor.copy(alpha = 0.5f),
+            modifier = Modifier.padding(top = 4.dp)
+          )
+        }
+      }
     }
+  }
 }

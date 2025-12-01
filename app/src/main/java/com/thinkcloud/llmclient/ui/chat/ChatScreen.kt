@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,164 +47,171 @@ import com.thinkcloud.llmclient.ui.chat.state.ChatEvent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
-    onSettingsClick: () -> Unit,
-    viewModel: ChatViewModel = koinViewModel()
+  onSettingsClick: () -> Unit,
+  onHistoryClick: () -> Unit = {},
+  viewModel: ChatViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+  val state by viewModel.state.collectAsStateWithLifecycle()
+  val snackbarHostState = remember { SnackbarHostState() }
+  val listState = rememberLazyListState()
+  val coroutineScope = rememberCoroutineScope()
 
-    // 判断是否在底部
-    val isAtBottom by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index == layoutInfo.totalItemsCount - 1
-        }
+  // 判断是否在底部
+  val isAtBottom by remember {
+    derivedStateOf {
+      val layoutInfo = listState.layoutInfo
+      val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
+      lastVisibleItem?.index == layoutInfo.totalItemsCount - 1
     }
+  }
 
-    // 自动滚动到底部（仅当用户在底部时）
-    LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.content) {
-        if (state.messages.isNotEmpty() && (isAtBottom || state.messages.size == 1)) {
-            // 平滑滚动到底部
-            listState.animateScrollToItem(state.messages.size - 1)
-        }
+  // 自动滚动到底部（仅当用户在底部时）
+  LaunchedEffect(state.messages.size, state.messages.lastOrNull()?.content) {
+    if (state.messages.isNotEmpty() && (isAtBottom || state.messages.size == 1)) {
+      // 平滑滚动到底部
+      listState.animateScrollToItem(state.messages.size - 1)
     }
+  }
 
-    // 显示错误消息
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let { error ->
-            snackbarHostState.showSnackbar(error)
-            viewModel.onEvent(ChatEvent.ClearError)
-        }
+  // 显示错误消息
+  LaunchedEffect(state.errorMessage) {
+    state.errorMessage?.let { error ->
+      snackbarHostState.showSnackbar(error)
+      viewModel.onEvent(ChatEvent.ClearError)
     }
+  }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "ThinkCloud AI",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "设置"
-                        )
-                    }
-                }
-            )
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = {
+          Text(
+            text = "ThinkCloud AI",
+            style = MaterialTheme.typography.titleLarge
+          )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // 模型选择器
-            ModelSelector(
-                selectedProvider = state.selectedProvider,
-                selectedModel = state.selectedModel,
-                availableModels = state.availableModels,
-                onProviderSelected = { provider ->
-                    viewModel.onEvent(ChatEvent.ProviderSelected(provider))
-                },
-                onModelSelected = { model ->
-                    viewModel.onEvent(ChatEvent.ModelSelected(model))
-                }
+        actions = {
+          IconButton(onClick = onHistoryClick) {
+            Icon(
+              imageVector = Icons.Default.History,
+              contentDescription = "对话历史"
             )
-
-            // 消息列表
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize()
-            ) {
-                if (state.messages.isEmpty()) {
-                    // 空状态
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "开始与 AI 对话",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        reverseLayout = false,
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            top = 8.dp,
-                            bottom = 8.dp
-                        )
-                    ) {
-                        items(
-                            items = state.messages,
-                            key = { message -> message.id }
-                        ) { message ->
-                            MessageBubble(message = message)
-                        }
-                    }
-                }
-
-                // 加载指示器
-                if (state.isLoading) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                // "滚动到底部"按钮
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = !isAtBottom && state.messages.isNotEmpty(),
-                    enter = fadeIn(),
-                    exit = fadeOut(),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    SmallFloatingActionButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                listState.animateScrollToItem(state.messages.size - 1)
-                            }
-                        },
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "滚动到底部"
-                        )
-                    }
-                }
-            }
-
-            // 消息输入框
-            MessageInput(
-                text = state.inputText,
-                onTextChanged = { text ->
-                    viewModel.onEvent(ChatEvent.InputTextChanged(text))
-                },
-                onSendClicked = {
-                    viewModel.onEvent(ChatEvent.SendMessage(state.inputText))
-                },
-                isLoading = state.isLoading
+          }
+          IconButton(onClick = onSettingsClick) {
+            Icon(
+              imageVector = Icons.Default.Settings,
+              contentDescription = "设置"
             )
+          }
         }
+      )
+    },
+    snackbarHost = { SnackbarHost(snackbarHostState) }
+  ) { paddingValues ->
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+    ) {
+      // 模型选择器
+      ModelSelector(
+        selectedProvider = state.selectedProvider,
+        selectedModel = state.selectedModel,
+        availableModels = state.availableModels,
+        onProviderSelected = { provider ->
+          viewModel.onEvent(ChatEvent.ProviderSelected(provider))
+        },
+        onModelSelected = { model ->
+          viewModel.onEvent(ChatEvent.ModelSelected(model))
+        }
+      )
+
+      // 消息列表
+      Box(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxSize()
+      ) {
+        if (state.messages.isEmpty()) {
+          // 空状态
+          Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+          ) {
+            Text(
+              text = "开始与 AI 对话",
+              style = MaterialTheme.typography.bodyLarge,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+        } else {
+          LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            reverseLayout = false,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+              top = 8.dp,
+              bottom = 8.dp
+            )
+          ) {
+            items(
+              items = state.messages,
+              key = { message -> message.id }
+            ) { message ->
+              MessageBubble(message = message)
+            }
+          }
+        }
+
+        // 加载指示器
+        if (state.isLoading) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(16.dp),
+            contentAlignment = Alignment.BottomCenter
+          ) {
+            CircularProgressIndicator()
+          }
+        }
+
+        // "滚动到底部"按钮
+        androidx.compose.animation.AnimatedVisibility(
+          visible = !isAtBottom && state.messages.isNotEmpty(),
+          enter = fadeIn(),
+          exit = fadeOut(),
+          modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(16.dp)
+        ) {
+          SmallFloatingActionButton(
+            onClick = {
+              coroutineScope.launch {
+                listState.animateScrollToItem(state.messages.size - 1)
+              }
+            },
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+          ) {
+            Icon(
+              imageVector = Icons.Default.KeyboardArrowDown,
+              contentDescription = "滚动到底部"
+            )
+          }
+        }
+      }
+
+      // 消息输入框
+      MessageInput(
+        text = state.inputText,
+        onTextChanged = { text ->
+          viewModel.onEvent(ChatEvent.InputTextChanged(text))
+        },
+        onSendClicked = {
+          viewModel.onEvent(ChatEvent.SendMessage(state.inputText))
+        },
+        isLoading = state.isLoading
+      )
     }
+  }
 }

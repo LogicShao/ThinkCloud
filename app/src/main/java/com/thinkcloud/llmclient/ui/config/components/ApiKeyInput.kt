@@ -35,100 +35,100 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ApiKeyInput(
-    providerName: String,
-    apiKey: String,
-    onApiKeyChanged: (String) -> Unit,
-    isAvailable: Boolean? = null,
-    modifier: Modifier = Modifier
+  providerName: String,
+  apiKey: String,
+  onApiKeyChanged: (String) -> Unit,
+  isAvailable: Boolean? = null,
+  modifier: Modifier = Modifier
 ) {
-    var isPasswordVisible by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
+  var isPasswordVisible by remember { mutableStateOf(false) }
+  val keyboardController = LocalSoftwareKeyboardController.current
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+  Card(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp, vertical = 8.dp),
+    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+  ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // 供应商名称和状态
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = providerName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+      // 供应商名称和状态
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = providerName,
+          style = MaterialTheme.typography.titleMedium,
+          color = MaterialTheme.colorScheme.onSurface
+        )
 
-                // 可用性状态指示器
-                if (isAvailable != null) {
-                    Icon(
-                        imageVector = if (isAvailable) Icons.Filled.CheckCircle else Icons.Outlined.Error,
-                        contentDescription = if (isAvailable) "可用" else "不可用",
-                        tint = if (isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            // API 密钥输入框
-            OutlinedTextField(
-                value = apiKey,
-                onValueChange = onApiKeyChanged,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                label = { Text("API 密钥") },
-                placeholder = { Text("输入 ${providerName} API 密钥") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        keyboardController?.hide()
-                    }
-                ),
-                visualTransformation = if (isPasswordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                trailingIcon = {
-                    IconButton(
-                        onClick = { isPasswordVisible = !isPasswordVisible }
-                    ) {
-                        Icon(
-                            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (isPasswordVisible) "隐藏密码" else "显示密码"
-                        )
-                    }
-                },
-                singleLine = true
-            )
-
-            // 状态说明
-            if (isAvailable != null) {
-                Text(
-                    text = if (isAvailable) "✓ 配置正确，供应商可用" else "⚠ 请检查 API 密钥是否正确",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            } else if (apiKey.isNotBlank()) {
-                Text(
-                    text = "点击保存按钮验证配置",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
+        // 可用性状态指示器
+        if (isAvailable != null) {
+          Icon(
+            imageVector = if (isAvailable) Icons.Filled.CheckCircle else Icons.Outlined.Error,
+            contentDescription = if (isAvailable) "可用" else "不可用",
+            tint = if (isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+          )
         }
+      }
+
+      // API 密钥输入框
+      OutlinedTextField(
+        value = apiKey,
+        onValueChange = onApiKeyChanged,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(top = 8.dp),
+        label = { Text("API 密钥") },
+        placeholder = { Text("输入 ${providerName} API 密钥") },
+        keyboardOptions = KeyboardOptions(
+          keyboardType = KeyboardType.Password,
+          imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+          onDone = {
+            keyboardController?.hide()
+          }
+        ),
+        visualTransformation = if (isPasswordVisible) {
+          VisualTransformation.None
+        } else {
+          PasswordVisualTransformation()
+        },
+        trailingIcon = {
+          IconButton(
+            onClick = { isPasswordVisible = !isPasswordVisible }
+          ) {
+            Icon(
+              imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+              contentDescription = if (isPasswordVisible) "隐藏密码" else "显示密码"
+            )
+          }
+        },
+        singleLine = true
+      )
+
+      // 状态说明
+      if (isAvailable != null) {
+        Text(
+          text = if (isAvailable) "✓ 配置正确，供应商可用" else "⚠ 请检查 API 密钥是否正确",
+          style = MaterialTheme.typography.labelSmall,
+          color = if (isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+          modifier = Modifier.padding(top = 4.dp)
+        )
+      } else if (apiKey.isNotBlank()) {
+        Text(
+          text = "点击保存按钮验证配置",
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(top = 4.dp)
+        )
+      }
     }
+  }
 }

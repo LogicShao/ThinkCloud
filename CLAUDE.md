@@ -2,7 +2,7 @@
 
 ## 项目愿景
 
-ThinkCloud LLM Client 是一个基于 Jetpack Compose 的多供应商 LLM 客户端 Android 应用，支持 DeepSeek、通义千问、Kimi 等多个大模型供应商。采用 MVVM + Repository 架构，提供安全、高效、可扩展的 AI 对话体验。
+ThinkCloud LLM Client 是一个基于 Jetpack Compose 的多供应商 LLM 客户端 Android 应用，支持 DeepSeek、通义千问、Kimi 等多个大模型供应商。采用 MVVM + Repository 架构，提供安全、高效、可扩展的 AI 对话体验，支持对话历史持久化和主题定制。
 
 ## 架构总览
 
@@ -13,6 +13,7 @@ ThinkCloud LLM Client 是一个基于 Jetpack Compose 的多供应商 LLM 客户
 - **架构模式**: MVVM + Repository + Clean Architecture
 - **依赖注入**: Koin
 - **网络请求**: Retrofit + OkHttp
+- **本地存储**: Room Database
 - **安全存储**: Android Keystore + EncryptedSharedPreferences
 - **异步处理**: Kotlin Coroutines + Flow
 - **构建工具**: Gradle (Kotlin DSL)
@@ -39,16 +40,23 @@ graph TD
     D1 --> D12["config"];
 
     D2 --> D21["config"];
+    D2 --> D22["database"];
+    D2 --> D23["dao"];
+    D2 --> D24["entity"];
 
     E --> E1["chat"];
     E --> E2["theme"];
     E --> E3["config"];
+    E --> E4["conversation"];
 
     E1 --> E11["components"];
     E1 --> E12["state"];
 
     E3 --> E31["components"];
     E3 --> E32["state"];
+
+    E4 --> E41["components"];
+    E4 --> E42["state"];
 
     click B "./app/CLAUDE.md" "查看 app 模块文档"
 ```
@@ -67,6 +75,12 @@ graph TD
 - **Kimi**: 基于月之暗面官方 API
 - **可扩展性**: 通过 Provider 接口轻松添加新供应商
 
+### 数据持久化
+- **Room 数据库**: 对话历史和消息本地存储
+- **实体关系**: Conversation 与 Message 的一对多关系
+- **级联删除**: 删除对话时自动删除相关消息
+- **Flow 响应式**: 实时监听数据变化
+
 ### 安全设计
 - **API 密钥管理**: 使用 Android Keystore 和 EncryptedSharedPreferences
 - **网络通信**: HTTPS + 证书验证
@@ -76,7 +90,10 @@ graph TD
 - **流式响应**: 支持实时流式输出显示
 - **模型切换**: 动态切换不同供应商和模型
 - **错误处理**: 完善的错误提示和重试机制
-- **双界面**: 聊天界面 + API 密钥配置界面
+- **三界面导航**: 聊天界面 + 配置界面 + 对话历史列表
+- **智能滚动**: 自动滚动到底部，支持手动滚动控制
+- **主题定制**: 支持浅色/深色/跟随系统三种主题模式
+- **对话管理**: 新建、加载、删除对话，时间戳自动格式化
 
 ## 运行与开发
 
@@ -144,14 +161,33 @@ graph TD
 - 使用 Jetpack Compose 作为 UI 框架
 - 遵循 Clean Architecture 分层原则
 - 支持多 LLM 供应商的插件化设计
+- Room 数据库实现对话历史持久化
 
 ### 架构演进建议
+- ✅ 已完成对话历史持久化
+- ✅ 已实现主题定制功能
 - 考虑引入模块化架构以支持功能扩展
 - 评估是否需要添加离线缓存功能
 - 规划国际化支持
-- 考虑添加对话历史持久化
+- 考虑添加云端同步功能
 
 ## 变更记录 (Changelog)
+
+### 2025-12-01 20:57:56
+- 完成项目架构文档全面更新
+- 新增对话历史持久化功能文档
+- 新增主题系统文档（浅色/深色/跟随系统）
+- 新增三界面导航说明（Chat/Config/ConversationList）
+- 完善 Room 数据库架构说明
+- 更新模块结构图，包含 conversation 和 database 子模块
+- 扫描覆盖率：100%，扫描 51 个关键文件
+
+### 2025-11-28 23:56:17
+- 执行自适应初始化策略，完成项目架构文档更新
+- 完善模块结构图和导航面包屑
+- 更新扫描覆盖率至 100%，扫描 32 个关键文件
+- 添加智能滚动功能文档
+- 更新依赖注入和配置管理说明
 
 ### 2025-11-28 19:18:27
 - 更新架构文档，详细记录 LLM Client 特性
@@ -173,4 +209,4 @@ graph TD
 
 ---
 
-*本文档由 Claude Code 自动生成，最后更新于 2025-11-28 19:18:27*
+*本文档由 Claude Code 自动生成，最后更新于 2025-12-01 20:57:56*

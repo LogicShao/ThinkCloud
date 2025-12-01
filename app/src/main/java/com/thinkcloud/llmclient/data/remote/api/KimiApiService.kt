@@ -12,22 +12,22 @@ import retrofit2.http.Streaming
  */
 interface KimiApiService {
 
-    /**
-     * 发送聊天请求（非流式）
-     */
-    @POST("chat/completions")
-    suspend fun chat(
-        @Header("Authorization") authorization: String,
-        @Body request: DeepSeekChatRequest // 复用 DeepSeek 的请求模型（OpenAI 兼容）
-    ): Response<DeepSeekChatResponse> // 复用响应模型
+  /**
+   * 发送聊天请求（非流式）
+   */
+  @POST("chat/completions")
+  suspend fun chat(
+    @Header("Authorization") authorization: String,
+    @Body request: DeepSeekChatRequest // 复用 DeepSeek 的请求模型（OpenAI 兼容）
+  ): Response<DeepSeekChatResponse> // 复用响应模型
 
-    /**
-     * 发送聊天请求（流式）
-     */
-    @Streaming
-    @POST("chat/completions")
-    suspend fun chatStream(
-        @Header("Authorization") authorization: String,
-        @Body request: DeepSeekChatRequest
-    ): Response<ResponseBody>
+  /**
+   * 发送聊天请求（流式）
+   */
+  @Streaming
+  @POST("chat/completions")
+  suspend fun chatStream(
+    @Header("Authorization") authorization: String,
+    @Body request: DeepSeekChatRequest
+  ): Response<ResponseBody>
 }
