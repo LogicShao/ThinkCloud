@@ -58,6 +58,9 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
 
   override suspend fun sendMessage(request: LlmRequest): Flow<LlmResponse> = flow {
     try {
+      Log.d(TAG, "开始发送消息到Kimi")
+      Log.d(TAG, "模型: ${request.model}, 流式: ${request.stream}, 消息数: ${request.messages.size}")
+
       val apiRequest = DeepSeekChatRequest(
         model = request.model,
         messages = request.messages.map { msg ->
@@ -77,10 +80,13 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
       )
 
       val authorization = "Bearer ${apiConfig.kimiApiKey}"
+      Log.d(TAG, "API密钥长度: ${apiConfig.kimiApiKey.length}")
 
       if (request.stream) {
+        Log.d(TAG, "使用流式响应模式")
         handleStreamResponse(authorization, apiRequest, this)
       } else {
+        Log.d(TAG, "使用非流式响应模式")
         handleNonStreamResponse(authorization, apiRequest, this)
       }
     } catch (e: Exception) {
@@ -99,14 +105,18 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
     request: DeepSeekChatRequest,
     collector: kotlinx.coroutines.flow.FlowCollector<LlmResponse>
   ) {
+    Log.d(TAG, "发起非流式API请求")
     val response = withContext(Dispatchers.IO) {
       apiService.chat(authorization, request)
     }
+
+    Log.d(TAG, "收到API响应: code=${response.code()}, success=${response.isSuccessful}")
 
     if (response.isSuccessful) {
       val body = response.body()
       if (body != null && body.choices.isNotEmpty()) {
         val content = body.choices.first().message?.content ?: ""
+        Log.d(TAG, "响应成功，内容长度: ${content.length}")
         val usage = body.usage?.let {
           UsageInfo(
             promptTokens = it.promptTokens,
@@ -114,6 +124,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
             totalTokens = it.totalTokens
           )
         }
+        Log.d(TAG, "Token使用: ${usage?.totalTokens ?: 0}")
         collector.emit(
           LlmResponse.Success(
             content = content,
@@ -122,6 +133,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
           )
         )
       } else {
+        Log.e(TAG, "响应体为空或没有choices")
         collector.emit(
           LlmResponse.Error(
             message = "响应为空",
@@ -131,6 +143,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
       }
     } else {
       val errorBody = response.errorBody()?.string()
+      Log.e(TAG, "API请求失败: ${response.code()} - $errorBody")
       val errorMessage = try {
         val error = gson.fromJson(errorBody, DeepSeekErrorResponse::class.java)
         error.error.message
@@ -152,15 +165,20 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
     request: DeepSeekChatRequest,
     collector: kotlinx.coroutines.flow.FlowCollector<LlmResponse>
   ) {
+    Log.d(TAG, "发起流式API请求")
     val response = withContext(Dispatchers.IO) {
       apiService.chatStream(authorization, request)
     }
 
+    Log.d(TAG, "收到流式API响应: code=${response.code()}, success=${response.isSuccessful}")
+
     if (response.isSuccessful) {
       val responseBody = response.body()
       if (responseBody != null) {
+        Log.d(TAG, "开始处理流式数据")
         val source = responseBody.source()
         val contentBuilder = StringBuilder()
+        var chunkCount = 0
 
         while (!source.exhausted()) {
           val line = source.readUtf8Line() ?: continue
@@ -169,6 +187,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
             val data = line.substring(6).trim()
 
             if (data == "[DONE]") {
+              Log.d(TAG, "流式数据接收完成，共${chunkCount}个chunk，总长度: ${contentBuilder.length}")
               collector.emit(
                 LlmResponse.Streaming(
                   content = contentBuilder.toString(),
@@ -183,7 +202,11 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
               val delta = chunk.choices.firstOrNull()?.delta?.content
 
               if (delta != null) {
+                chunkCount++
                 contentBuilder.append(delta)
+                if (chunkCount % 10 == 0) {
+                  Log.d(TAG, "已接收${chunkCount}个chunk，当前总长度: ${contentBuilder.length}")
+                }
                 collector.emit(
                   LlmResponse.Streaming(
                     content = contentBuilder.toString(),
@@ -197,6 +220,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
           }
         }
       } else {
+        Log.e(TAG, "流式响应体为空")
         collector.emit(
           LlmResponse.Error(
             message = "响应体为空",
@@ -206,6 +230,7 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
       }
     } else {
       val errorBody = response.errorBody()?.string()
+      Log.e(TAG, "流式API请求失败: ${response.code()} - $errorBody")
       val errorMessage = try {
         val error = gson.fromJson(errorBody, DeepSeekErrorResponse::class.java)
         error.error.message
@@ -226,7 +251,11 @@ class KimiProvider(private val apiConfig: ApiConfig) : LlmProvider {
     return listOf(
       "moonshot-v1-8k",
       "moonshot-v1-32k",
-      "moonshot-v1-128k"
+      "moonshot-v1-128k",
+      "kimi-k2-0905-Preview",
+      "kimi-k2-turbo-preview",
+      "kimi-k2-thinking",
+      "kimi-k2-thinking-turbo"
     )
   }
 

@@ -7,7 +7,7 @@ package com.thinkcloud.llmclient.data.remote.config
 class ApiConfig {
   // DeepSeek 配置
   var deepSeekApiKey: String = ""
-  val deepSeekBaseUrl: String = "https://api.deepseek.com"
+  val deepSeekBaseUrl: String = "https://api.deepseek.com/"
 
   // 阿里云配置
   var alibabaApiKey: String = ""
@@ -16,7 +16,7 @@ class ApiConfig {
 
   // Kimi 配置
   var kimiApiKey: String = ""
-  val kimiBaseUrl: String = "https://api.moonshot.cn/v1"
+  val kimiBaseUrl: String = "https://api.moonshot.cn/v1/"
 
   /**
    * 检查是否有至少一个供应商可用
