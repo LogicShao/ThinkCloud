@@ -16,6 +16,7 @@ import com.thinkcloud.llmclient.domain.model.UsageInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -99,7 +100,7 @@ class DeepSeekProvider(private val apiConfig: ApiConfig) : LlmProvider {
         )
       )
     }
-  }
+  }.flowOn(Dispatchers.IO)  // 指定在IO线程执行
 
   private suspend fun handleNonStreamResponse(
     authorization: String,
@@ -167,9 +168,9 @@ class DeepSeekProvider(private val apiConfig: ApiConfig) : LlmProvider {
     collector: kotlinx.coroutines.flow.FlowCollector<LlmResponse>
   ) {
     Log.d(TAG, "发起流式API请求")
-    val response = withContext(Dispatchers.IO) {
-      apiService.chatStream(authorization, request)
-    }
+
+    // 由于整个flow已经在IO线程执行，这里直接进行网络请求
+    val response = apiService.chatStream(authorization, request)
 
     Log.d(TAG, "收到流式API响应: code=${response.code()}, success=${response.isSuccessful}")
 
@@ -181,44 +182,57 @@ class DeepSeekProvider(private val apiConfig: ApiConfig) : LlmProvider {
         val contentBuilder = StringBuilder()
         var chunkCount = 0
 
-        while (!source.exhausted()) {
-          val line = source.readUtf8Line() ?: continue
+        try {
+          while (!source.exhausted()) {
+            val line = source.readUtf8Line() ?: continue
 
-          if (line.startsWith("data: ")) {
-            val data = line.substring(6).trim()
+            if (line.startsWith("data: ")) {
+              val data = line.substring(6).trim()
 
-            if (data == "[DONE]") {
-              Log.d(TAG, "流式数据接收完成，共${chunkCount}个chunk，总长度: ${contentBuilder.length}")
-              collector.emit(
-                LlmResponse.Streaming(
-                  content = contentBuilder.toString(),
-                  isComplete = true
-                )
-              )
-              break
-            }
-
-            try {
-              val chunk = gson.fromJson(data, DeepSeekChatResponse::class.java)
-              val delta = chunk.choices.firstOrNull()?.delta?.content
-
-              if (delta != null) {
-                chunkCount++
-                contentBuilder.append(delta)
-                if (chunkCount % 10 == 0) {
-                  Log.d(TAG, "已接收${chunkCount}个chunk，当前总长度: ${contentBuilder.length}")
-                }
+              if (data == "[DONE]") {
+                Log.d(TAG, "流式数据接收完成，共${chunkCount}个chunk，总长度: ${contentBuilder.length}")
                 collector.emit(
                   LlmResponse.Streaming(
                     content = contentBuilder.toString(),
-                    isComplete = false
+                    isComplete = true
                   )
                 )
+                break
               }
-            } catch (e: Exception) {
-              Log.w(TAG, "解析流式数据失败: $data", e)
+
+              try {
+                val chunk = gson.fromJson(data, DeepSeekChatResponse::class.java)
+                val delta = chunk.choices.firstOrNull()?.delta?.content
+
+                if (delta != null) {
+                  chunkCount++
+                  contentBuilder.append(delta)
+
+                  // 实时发送每个chunk
+                  collector.emit(
+                    LlmResponse.Streaming(
+                      content = contentBuilder.toString(),
+                      isComplete = false
+                    )
+                  )
+
+                  if (chunkCount % 10 == 0) {
+                    Log.d(TAG, "已接收${chunkCount}个chunk，当前总长度: ${contentBuilder.length}")
+                  }
+                }
+              } catch (e: Exception) {
+                Log.w(TAG, "解析流式数据失败: $data", e)
+              }
             }
           }
+        } catch (e: Exception) {
+          Log.e(TAG, "读取流式数据时发生错误", e)
+          collector.emit(
+            LlmResponse.Error(
+              message = "读取流式数据失败: ${e.message}",
+              retryable = true
+            )
+          )
         }
       } else {
         Log.e(TAG, "流式响应体为空")

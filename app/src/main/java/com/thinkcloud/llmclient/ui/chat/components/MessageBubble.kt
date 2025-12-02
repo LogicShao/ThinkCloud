@@ -1,5 +1,6 @@
 package com.thinkcloud.llmclient.ui.chat.components
 
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,12 @@ fun MessageBubble(
   message: ChatMessage,
   modifier: Modifier = Modifier
 ) {
+  // 添加调试日志，追踪重组
+  LaunchedEffect(message.content.length, message.isStreaming) {
+    if (message.role == MessageRole.ASSISTANT) {
+      Log.d("MessageBubble", "🔄 重组 - ID: ${message.id.take(8)}, 长度: ${message.content.length}, 流式: ${message.isStreaming}")
+    }
+  }
   val isUser = message.role == MessageRole.USER
   val backgroundColor = if (isUser) {
     MaterialTheme.colorScheme.primary

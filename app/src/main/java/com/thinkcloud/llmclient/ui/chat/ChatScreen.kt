@@ -1,5 +1,6 @@
 package com.thinkcloud.llmclient.ui.chat
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -52,6 +53,14 @@ fun ChatScreen(
   viewModel: ChatViewModel = koinViewModel()
 ) {
   val state by viewModel.state.collectAsStateWithLifecycle()
+
+  // 添加State变化日志
+  LaunchedEffect(state.messages.size, state.isStreaming) {
+    Log.d("ChatScreen", "📊 State变化 - 消息数: ${state.messages.size}, 流式中: ${state.isStreaming}")
+    state.messages.lastOrNull()?.let { lastMsg ->
+      Log.d("ChatScreen", "📝 最后消息 - 长度: ${lastMsg.content.length}, 流式: ${lastMsg.isStreaming}")
+    }
+  }
   val snackbarHostState = remember { SnackbarHostState() }
   val listState = rememberLazyListState()
   val coroutineScope = rememberCoroutineScope()
@@ -156,7 +165,10 @@ fun ChatScreen(
           ) {
             items(
               items = state.messages,
-              key = { message -> message.id }
+              key = { message -> message.id },
+              contentType = { message ->
+                "${message.role}_${message.isStreaming}_${message.content.length}"
+              }
             ) { message ->
               MessageBubble(message = message)
             }

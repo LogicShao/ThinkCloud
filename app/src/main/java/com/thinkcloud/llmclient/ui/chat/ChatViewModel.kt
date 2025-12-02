@@ -176,23 +176,27 @@ class ChatViewModel(
                   Log.d(TAG, "✓ UI更新 - 内容长度: ${response.content.length}, 完成: ${response.isComplete}, 间隔: ${currentTime - lastUpdateTime}ms")
                   lastUpdateTime = currentTime
 
-                  // 更新助手消息内容
+                  // 更新助手消息内容 - 创建全新的列表引用
+                  val updatedMessages = _state.value.messages.map { message ->
+                    if (message.id == assistantMessageId) {
+                      message.copy(
+                        content = response.content,
+                        isStreaming = !response.isComplete
+                      )
+                    } else {
+                      message
+                    }
+                  }
+
                   _state.update { currentState ->
                     currentState.copy(
-                      messages = currentState.messages.map { message ->
-                        if (message.id == assistantMessageId) {
-                          message.copy(
-                            content = response.content,
-                            isStreaming = !response.isComplete
-                          )
-                        } else {
-                          message
-                        }
-                      },
+                      messages = updatedMessages,  // 使用新的列表引用
                       isLoading = false,
                       isStreaming = !response.isComplete
                     )
                   }
+
+                  Log.d(TAG, "🔄 State已更新 - 列表hashCode: ${updatedMessages.hashCode()}")
 
                   // 如果流式响应完成，保存对话
                   if (response.isComplete) {
