@@ -529,8 +529,8 @@ Closes #issue号
 
 ## 📚 其他资源
 
-- [项目架构文档](CLAUDE.md)
-- [README](README.md)
+- [项目架构文档](../CLAUDE.md)
+- [README](../README.md)
 - [变更日志](CHANGELOG.md)
 - [Kotlin 编码约定](https://kotlinlang.org/docs/coding-conventions.html)
 - [Conventional Commits](https://www.conventionalcommits.org/)

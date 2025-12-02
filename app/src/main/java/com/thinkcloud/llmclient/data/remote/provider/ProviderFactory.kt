@@ -18,7 +18,7 @@ class ProviderFactory(private val apiConfig: ApiConfig) {
     return providers.getOrPut(type) {
       when (type) {
         LlmProviderType.DEEPSEEK -> DeepSeekProvider(apiConfig)
-        LlmProviderType.ALIBABA -> AlibabaProvider(apiConfig)
+        LlmProviderType.ALIBABA -> QwenProvider(apiConfig)
         LlmProviderType.KIMI -> KimiProvider(apiConfig)
       }
     }

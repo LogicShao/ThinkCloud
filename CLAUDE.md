@@ -1,10 +1,18 @@
 # ThinkCloud LLM Client - Android 项目架构文档
 
-## 项目愿景
+## 📋 文档结构说明
+
+本项目采用**根级简明 + 模块级详尽**的文档组织策略：
+
+- **根目录**: 保留最简架构概览和快速导航
+- **`/doc` 目录**: 存放详细功能文档和指南
+- **`/app/CLAUDE.md`**: 模块级详细架构文档
+
+## 🎯 项目愿景
 
 ThinkCloud LLM Client 是一个基于 Jetpack Compose 的多供应商 LLM 客户端 Android 应用，支持 DeepSeek、通义千问、Kimi 等多个大模型供应商。采用 MVVM + Repository 架构，提供安全、高效、可扩展的 AI 对话体验，支持对话历史持久化和主题定制。
 
-## 架构总览
+## 🏗️ 架构总览
 
 本项目采用现代化的 Android 架构，基于以下技术栈：
 
@@ -19,7 +27,7 @@ ThinkCloud LLM Client 是一个基于 Jetpack Compose 的多供应商 LLM 客户
 - **构建工具**: Gradle (Kotlin DSL)
 - **目标平台**: Android 24+ (minSdk 24)
 
-## 模块结构图
+## 📊 模块结构图
 
 ```mermaid
 graph TD
@@ -61,100 +69,51 @@ graph TD
     click B "./app/CLAUDE.md" "查看 app 模块文档"
 ```
 
-## 模块索引
+## 📁 模块索引
 
 | 模块 | 路径 | 类型 | 语言 | 职责描述 |
 |------|------|------|------|----------|
 | app | `app/` | Android 应用 | Kotlin | 主应用模块，包含完整的 MVVM 架构实现 |
 
-## 核心架构特性
+## 🔗 详细文档导航
 
-### 多供应商支持
-- **DeepSeek**: 支持官方 API 和阿里云百炼/Model Studio
-- **通义千问**: 基于阿里云 DashScope API
-- **Kimi**: 基于月之暗面官方 API
-- **可扩展性**: 通过 Provider 接口轻松添加新供应商
+### 📚 项目文档
+- **[README.md](README.md)** - 项目介绍和快速开始指南
+- **[doc/CONTRIBUTING.md](doc/CONTRIBUTING.md)** - 贡献指南和开发规范
+- **[doc/CHANGELOG.md](doc/CHANGELOG.md)** - 变更日志和版本历史
+- **[doc/USAGE.md](doc/USAGE.md)** - 使用指南和功能说明
 
-### 数据持久化
-- **Room 数据库**: 对话历史和消息本地存储
-- **实体关系**: Conversation 与 Message 的一对多关系
-- **级联删除**: 删除对话时自动删除相关消息
-- **Flow 响应式**: 实时监听数据变化
+### 🔧 开发与调试
+- **[doc/DEBUG_GUIDE.md](doc/DEBUG_GUIDE.md)** - 调试指南和问题排查
+- **[doc/STREAMING_DEBUG.md](doc/STREAMING_DEBUG.md)** - 流式显示诊断指南
+- **[doc/SCROLL_FEATURE.md](doc/SCROLL_FEATURE.md)** - 聊天界面滚动功能说明
+- **[doc/QWEN_TEST_GUIDE.md](doc/QWEN_TEST_GUIDE.md)** - 通义千问对话功能测试指南
 
-### 安全设计
-- **API 密钥管理**: 使用 Android Keystore 和 EncryptedSharedPreferences
-- **网络通信**: HTTPS + 证书验证
-- **数据保护**: 本地敏感数据加密存储
+### 🏛️ 架构文档
+- **[app/CLAUDE.md](app/CLAUDE.md)** - app 模块详细架构文档
 
-### 用户体验
-- **流式响应**: 支持实时流式输出显示
-- **模型切换**: 动态切换不同供应商和模型
-- **错误处理**: 完善的错误提示和重试机制
-- **三界面导航**: 聊天界面 + 配置界面 + 对话历史列表
-- **智能滚动**: 自动滚动到底部，支持手动滚动控制
-- **主题定制**: 支持浅色/深色/跟随系统三种主题模式
-- **对话管理**: 新建、加载、删除对话，时间戳自动格式化
-
-## 运行与开发
-
-### 环境要求
-- Android Studio Flamingo 或更高版本
-- JDK 11
-- Android SDK 36 (API 36)
+## 🚀 快速开始
 
 ### 构建与运行
 ```bash
 # 构建项目
 ./gradlew build
 
+# 运行应用
+./gradlew installDebug
+
 # 运行测试
 ./gradlew test
 ./gradlew connectedAndroidTest
-
-# 清理构建
-./gradlew clean
 ```
 
-### 开发工作流
-1. 使用 Android Studio 打开项目
-2. 配置 API 密钥（通过设置界面）
-3. 连接 Android 设备或启动模拟器
-4. 运行 `./gradlew assembleDebug` 构建调试版本
-5. 部署到设备进行测试
+### 开发环境
+- **Android Studio**: Flamingo 或更高版本
+- **JDK**: 11
+- **Android SDK**: API 36
+- **目标平台**: Android 24+ (minSdk 24)
 
-## 测试策略
-
-### 单元测试
-- **位置**: `app/src/test/`
-- **框架**: JUnit 4
-- **覆盖范围**: 业务逻辑、工具类、ViewModel
-
-### 仪器化测试
-- **位置**: `app/src/androidTest/`
-- **框架**: AndroidJUnit4
-- **覆盖范围**: UI 交互、集成测试、API 调用
-
-## 编码规范
-
-### Kotlin 代码规范
-- 遵循 Kotlin 官方编码约定
-- 使用 4 空格缩进
-- 类名使用 PascalCase
-- 函数和变量名使用 camelCase
-
-### 架构规范
-- **领域层**: 纯 Kotlin，无 Android 依赖
-- **数据层**: 实现 Repository 接口，处理数据源
-- **UI 层**: Jetpack Compose，遵循单向数据流
-- **依赖注入**: 使用 Koin 管理依赖关系
-
-### Compose 最佳实践
-- 使用 `@Composable` 注解标记可组合函数
-- 遵循单向数据流原则
-- 合理使用状态提升
-- 保持可组合函数的纯净性
-
-## AI 使用指引
+## 📝 AI 使用指引
 
 ### 代码理解与生成
 - 本项目采用 MVVM + Repository 架构模式
@@ -166,47 +125,13 @@ graph TD
 ### 架构演进建议
 - ✅ 已完成对话历史持久化
 - ✅ 已实现主题定制功能
+- ✅ 已增强调试功能（状态变化日志、消息气泡更新追踪）
+- ✅ 已优化流式显示（节流和视觉指示器）
 - 考虑引入模块化架构以支持功能扩展
 - 评估是否需要添加离线缓存功能
 - 规划国际化支持
 - 考虑添加云端同步功能
 
-## 变更记录 (Changelog)
-
-### 2025-12-01 20:57:56
-- 完成项目架构文档全面更新
-- 新增对话历史持久化功能文档
-- 新增主题系统文档（浅色/深色/跟随系统）
-- 新增三界面导航说明（Chat/Config/ConversationList）
-- 完善 Room 数据库架构说明
-- 更新模块结构图，包含 conversation 和 database 子模块
-- 扫描覆盖率：100%，扫描 51 个关键文件
-
-### 2025-11-28 23:56:17
-- 执行自适应初始化策略，完成项目架构文档更新
-- 完善模块结构图和导航面包屑
-- 更新扫描覆盖率至 100%，扫描 32 个关键文件
-- 添加智能滚动功能文档
-- 更新依赖注入和配置管理说明
-
-### 2025-11-28 19:18:27
-- 更新架构文档，详细记录 LLM Client 特性
-- 完善多供应商架构设计说明
-- 添加配置界面和双界面切换功能
-- 更新模块结构图，包含配置模块
-- 完善安全配置和依赖注入说明
-
-### 2025-11-28
-- 更新架构文档，反映 LLM Client 特性
-- 详细记录多供应商架构设计
-- 完善安全配置和依赖注入说明
-- 更新模块结构图
-
-### 2025-11-27
-- 初始架构文档创建
-- 项目结构分析完成
-- 模块文档生成
-
 ---
 
-*本文档由 Claude Code 自动生成，最后更新于 2025-12-01 20:57:56*
+*本文档由 Claude Code 自动生成，最后更新于 2025-12-02 20:34:00*

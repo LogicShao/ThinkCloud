@@ -83,9 +83,9 @@
 
 ### 文档
 
-- 📖 [README.md](README.md) - 项目介绍和快速开始
+- 📖 [README.md](../README.md) - 项目介绍和快速开始
 - 🤝 [CONTRIBUTING.md](CONTRIBUTING.md) - 贡献指南
-- 🏛️ [CLAUDE.md](CLAUDE.md) - 架构文档
+- 🏛️ [CLAUDE.md](../CLAUDE.md) - 架构文档
 - 📄 [LICENSE](LICENSE) - MIT 许可证
 
 ---

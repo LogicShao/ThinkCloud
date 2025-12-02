@@ -9,10 +9,9 @@ class ApiConfig {
   var deepSeekApiKey: String = ""
   val deepSeekBaseUrl: String = "https://api.deepseek.com/"
 
-  // 阿里云配置
+  // 阿里云配置（通义千问）
   var alibabaApiKey: String = ""
-  val alibabaBaseUrl: String =
-    "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+  val alibabaBaseUrl: String = "https://dashscope.aliyuncs.com/compatible-mode/v1/"
 
   // Kimi 配置
   var kimiApiKey: String = ""
