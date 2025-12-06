@@ -2,7 +2,7 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
-  kotlin("kapt")
+  alias(libs.plugins.ksp)
 }
 
 android {
@@ -76,7 +76,13 @@ dependencies {
   // Room 数据库
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.room.ktx)
-  kapt(libs.androidx.room.compiler)
+  ksp(libs.androidx.room.compiler)
+
+  // Markdown 渲染
+  implementation(libs.multiplatform.markdown.renderer)
+  implementation(libs.multiplatform.markdown.renderer.m3)
+  implementation(libs.multiplatform.markdown.renderer.coil3)
+  implementation(libs.coil.compose)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

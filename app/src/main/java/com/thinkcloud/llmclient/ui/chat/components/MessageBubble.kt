@@ -79,11 +79,10 @@ fun MessageBubble(
           // 流式输入中，显示加载动画
           TypingIndicator(textColor = textColor)
         } else {
-          Text(
-            text = message.content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = textColor,
-            modifier = Modifier.padding(top = 4.dp)
+          // 使用 Markdown 渲染消息内容
+          MarkdownContent(
+            content = message.content,
+            textColor = textColor
           )
 
           // 流式输入指示器
